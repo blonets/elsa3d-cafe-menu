@@ -32,6 +32,8 @@ COPY --from=builder /app/node_modules/postgres ./node_modules/postgres
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 USER node
+# ISR/revalidateTag needs to write the incremental cache at runtime
+RUN mkdir -p .next/cache && chown -R node:node .next
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=5 \
