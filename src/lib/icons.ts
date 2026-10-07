@@ -1,0 +1,73 @@
+import {
+  Coffee,
+  CupSoda,
+  Croissant,
+  IceCreamCone,
+  CakeSlice,
+  Cookie,
+  Candy,
+  GlassWater,
+  Martini,
+  Beer,
+  Wine,
+  Sandwich,
+  Pizza,
+  Salad,
+  Soup,
+  Citrus,
+  Cherry,
+  Grape,
+  Leaf,
+  Flame,
+  Snowflake,
+  Star,
+  Sparkles,
+  Fish,
+  Beef,
+  Drumstick,
+  Banana,
+  Nut,
+  Cigarette,
+  type LucideIcon,
+} from "lucide-react";
+
+/** Allowed category icons — string keys stored in DB, resolved for rendering. */
+export const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  coffee: Coffee,
+  soda: CupSoda,
+  croissant: Croissant,
+  "ice-cream": IceCreamCone,
+  cake: CakeSlice,
+  cookie: Cookie,
+  candy: Candy,
+  water: GlassWater,
+  martini: Martini,
+  beer: Beer,
+  wine: Wine,
+  sandwich: Sandwich,
+  pizza: Pizza,
+  salad: Salad,
+  soup: Soup,
+  citrus: Citrus,
+  cherry: Cherry,
+  grape: Grape,
+  leaf: Leaf,
+  flame: Flame,
+  snow: Snowflake,
+  star: Star,
+  sparkles: Sparkles,
+  cup: CupSoda,
+  fish: Fish,
+  meat: Beef,
+  chicken: Drumstick,
+  banana: Banana,
+  nuts: Nut,
+  shisha: Cigarette,
+};
+
+export const CATEGORY_ICON_KEYS = Object.keys(CATEGORY_ICONS);
+
+export function getIcon(key: string | null | undefined): LucideIcon | null {
+  if (!key) return null;
+  return CATEGORY_ICONS[key] ?? null;
+}

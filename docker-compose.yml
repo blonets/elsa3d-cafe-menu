@@ -1,0 +1,88 @@
+# Elsa3d Cafe — QR Menu System · Docker Compose (Dokploy-ready)
+# app:  Next.js 15 standalone (internal port 3000)
+# db:   PostgreSQL 16 (internal network only — no published ports)
+# backup: daily pg_dump to a named volume (keeps 14)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-menu_user}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-elsa3d_menu}
+      POSTGRES_USER: ${POSTGRES_USER:-menu_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-elsa3d_menu}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      AUTH_SECRET: ${AUTH_SECRET}
+      MENU_DOMAIN: ${MENU_DOMAIN:-https://menu.elsa3dcafe.com}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-https://adminmenueg.elsa3dcafe.com}
+      CAFE_NAME_AR: ${CAFE_NAME_AR:-كافيه السعد}
+      CAFE_NAME_EN: ${CAFE_NAME_EN:-Elsa3d Cafe}
+      CAFE_PHONE: ${CAFE_PHONE:-+201025617078}
+      CAFE_WHATSAPP: ${CAFE_WHATSAPP:-201025617078}
+      NODE_ENV: production
+    networks:
+      - default
+      - dokploy-network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-menu_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-elsa3d_menu}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-menu_user} -d ${POSTGRES_DB:-elsa3d_menu}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    # NOTE: intentionally NO published ports — db is internal-only
+
+  backup:
+    image: postgres:16-alpine
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-menu_user}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-elsa3d_menu}
+    volumes:
+      - backups:/backups
+    networks:
+      - default
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: >
+      sh -c 'while true; do
+        ts=$$(date +%Y%m%d-%H%M);
+        pg_dump -Fc -f /backups/elsa3d_menu_$$ts.dump && echo "[backup] $$ts ok";
+        ls -1t /backups/elsa3d_menu_*.dump 2>/dev/null | tail -n +15 | xargs -r rm -f;
+        sleep 86400;
+      done'
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  backups:
+
+networks:
+  dokploy-network:
+    external: true
