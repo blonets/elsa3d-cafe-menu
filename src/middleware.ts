@@ -12,6 +12,14 @@ function notFound(): NextResponse {
 }
 
 export function middleware(req: NextRequest) {
+  // Reject scanner/bot probes sending malformed next-action IDs before they cause 500 logs
+  const actionHeader = req.headers.get("next-action");
+  if (actionHeader !== null) {
+    if (req.method !== "POST" || actionHeader.length < 20 || !/^[a-zA-Z0-9_-]+$/.test(actionHeader)) {
+      return new NextResponse("Bad Request", { status: 400 });
+    }
+  }
+
   const host = (req.headers.get("host") || "").split(":")[0];
   const path = req.nextUrl.pathname;
   const isAdminHost = host === ADMIN_HOST && ADMIN_HOST !== "localhost";

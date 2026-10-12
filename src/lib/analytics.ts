@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/db";
 import { analyticsDaily, analyticsEvents } from "@/db/schema";
-import { sql, lt as ltCol } from "drizzle-orm";
+import { sql, lt as ltCol, eq as eqCol } from "drizzle-orm";
 
 let lastPruneDay = "";
 
@@ -51,17 +51,40 @@ export async function maybePrune(): Promise<void> {
         agg.set(r.day, e);
       }
       for (const [day, e] of agg) {
-        await tx
-          .insert(analyticsDaily)
-          .values({ day, scans: e.scans, itemViews: e.itemViews, topSearches: e.searches })
-          .onConflictDoUpdate({
-            target: analyticsDaily.day,
-            set: {
-              scans: sql`${analyticsDaily.scans} + ${e.scans}`,
-              itemViews: sql`${analyticsDaily.itemViews} || ${JSON.stringify(e.itemViews)}::jsonb`,
-              topSearches: sql`${analyticsDaily.topSearches} || ${JSON.stringify(e.searches)}::jsonb`,
-            },
-          });
+        const [existing] = await tx
+          .select()
+          .from(analyticsDaily)
+          .where(eqCol(analyticsDaily.day, day))
+          .limit(1);
+
+        if (!existing) {
+          await tx
+            .insert(analyticsDaily)
+            .values({ day, scans: e.scans, itemViews: e.itemViews, topSearches: e.searches });
+        } else {
+          const mergedViews: Record<string, number> = {
+            ...((existing.itemViews as Record<string, number>) || {}),
+          };
+          for (const [k, v] of Object.entries(e.itemViews)) {
+            mergedViews[k] = (mergedViews[k] || 0) + v;
+          }
+
+          const mergedSearches: Record<string, number> = {
+            ...((existing.topSearches as Record<string, number>) || {}),
+          };
+          for (const [k, v] of Object.entries(e.searches)) {
+            mergedSearches[k] = (mergedSearches[k] || 0) + v;
+          }
+
+          await tx
+            .update(analyticsDaily)
+            .set({
+              scans: existing.scans + e.scans,
+              itemViews: mergedViews,
+              topSearches: mergedSearches,
+            })
+            .where(eqCol(analyticsDaily.day, day));
+        }
       }
       await tx.delete(analyticsEvents).where(ltCol(analyticsEvents.createdAt, cutoff));
       // keep 400 days of daily rollups

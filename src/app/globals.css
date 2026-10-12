@@ -279,6 +279,14 @@ html.dark .oos-tag { color: #fca5a5; background: #450a0a; }
   border-radius: 18px;
 }
 
+/* Scalability: render off-screen categories on-demand for large menus */
+@media screen {
+  section[data-cat-slug] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
+  }
+}
+
 /* Search */
 .menu-search {
   width: 100%;
