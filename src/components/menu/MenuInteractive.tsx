@@ -27,12 +27,17 @@ export default function MenuInteractive({ oosMode, announcementHash }: Props) {
     };
 
     /* ── Language toggle ── */
+    const search = document.getElementById("menu-search") as HTMLInputElement | null;
     const langBtn = document.getElementById("lang-toggle");
     const syncLangBtn = () => {
       if (!langBtn) return;
-      const cur = html.dataset.lang === "en" ? "EN" : "ع";
       langBtn.textContent = html.dataset.lang === "en" ? "ع" : "EN";
-      void cur;
+      if (search) {
+        search.placeholder =
+          html.dataset.lang === "en"
+            ? search.dataset.placeholderEn || "Search the menu…"
+            : search.dataset.placeholderAr || "ابحث في المنيو…";
+      }
     };
     syncLangBtn();
     on(langBtn, "click", () => {
@@ -80,7 +85,6 @@ export default function MenuInteractive({ oosMode, announcementHash }: Props) {
     }
 
     /* ── Unified row visibility: search × availability × OOS mode ── */
-    const search = document.getElementById("menu-search") as HTMLInputElement | null;
     const noResults = document.getElementById("no-results");
     const rows = Array.from(document.querySelectorAll<HTMLElement>("[data-item-code]"));
     const sections = Array.from(document.querySelectorAll<HTMLElement>("section[data-cat-slug]"));
@@ -147,36 +151,53 @@ export default function MenuInteractive({ oosMode, announcementHash }: Props) {
     on(search, "input", applySearch);
 
     /* ── Category tabs + quick chips: click → smooth scroll ── */
+    let isClickScrolling = false;
+    let clickTimer: ReturnType<typeof setTimeout> | null = null;
+
     const tabButtons = document.querySelectorAll<HTMLElement>(".cat-tab, #quick-chips .chip");
     const setActiveTab = (slug: string) => {
       tabButtons.forEach((b) => {
         if (b.classList.contains("cat-tab")) b.classList.toggle("active", b.dataset.slug === slug);
       });
     };
+
     tabButtons.forEach((btn) => {
-      on(btn, "click", () => {
+      on(btn, "click", (e) => {
+        e.preventDefault();
         const target = btn.dataset.target ?? "top";
         const el = target === "top" ? document.getElementById("menu-main") : document.getElementById(target);
         if (!el) return;
-        setActiveTab(btn.dataset.slug ?? "__top");
-        const y = el.getBoundingClientRect().top + window.scrollY - (target === "top" ? 140 : 120);
-        window.scrollTo({ top: y, behavior: "smooth" });
+
+        const slug = btn.dataset.slug ?? "__top";
+        setActiveTab(slug);
+
+        const tabBtn = document.querySelector<HTMLElement>(`.cat-tab[data-slug="${slug}"]`);
+        if (tabBtn) tabBtn.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+
+        isClickScrolling = true;
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+          isClickScrolling = false;
+        }, 850);
+
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
 
     /* scroll-spy */
     let spyTick = false;
     const spy = () => {
-      if (spyTick) return;
+      if (isClickScrolling || spyTick) return;
       spyTick = true;
       requestAnimationFrame(() => {
         spyTick = false;
-        const line = window.innerHeight * 0.35;
+        if (isClickScrolling) return;
+        const line = 120;
         let current = "__top";
         for (const sec of sections) {
           if (sec.getBoundingClientRect().top <= line) current = sec.dataset.catSlug ?? "__top";
         }
-        if (window.scrollY < 150) current = "__top";
+        if (window.scrollY < 120) current = "__top";
         setActiveTab(current);
         const activeTab = document.querySelector<HTMLElement>(`.cat-tab.active`);
         if (activeTab) activeTab.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
@@ -184,6 +205,24 @@ export default function MenuInteractive({ oosMode, announcementHash }: Props) {
     };
     window.addEventListener("scroll", spy, { passive: true });
     disposers.push(() => window.removeEventListener("scroll", spy));
+
+    /* ── Back to Top button ── */
+    const backBtn = document.getElementById("back-to-top");
+    if (backBtn) {
+      const toggleBackBtn = () => {
+        backBtn.classList.toggle("visible", window.scrollY > 350);
+      };
+      window.addEventListener("scroll", toggleBackBtn, { passive: true });
+      disposers.push(() => window.removeEventListener("scroll", toggleBackBtn));
+
+      on(backBtn, "click", (e) => {
+        e.preventDefault();
+        setActiveTab("__top");
+        const allTab = document.querySelector<HTMLElement>(`.cat-tab[data-slug="__top"]`);
+        if (allTab) allTab.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
 
     /* ── Availability polling (30s, tiny JSON, no page rebuild) ── */
     const applyAvailability = (data: { items: number[]; variants: number[]; oosMode: string }) => {

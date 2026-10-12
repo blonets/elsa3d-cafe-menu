@@ -5,7 +5,7 @@ const ADMIN_HOST = (process.env.ADMIN_DOMAIN || "https://adminmenueg.elsa3dcafe.
 
 const SESSION_COOKIE = "elsa3d_admin";
 
-const ADMIN_PAGES = ["/", "/login", "/items", "/categories", "/addons", "/import", "/appearance", "/qr", "/audit", "/settings"];
+const ADMIN_PAGES = ["/", "/admin", "/login", "/items", "/categories", "/addons", "/import", "/appearance", "/qr", "/audit", "/settings"];
 
 function notFound(): NextResponse {
   return new NextResponse("Not Found", { status: 404 });
@@ -37,7 +37,7 @@ export function middleware(req: NextRequest) {
     }
 
     // Public: login page + login API + health
-    if (path === "/login") {
+    if (path === "/login" || path === "/admin/login") {
       return NextResponse.rewrite(new URL("/admin/login", req.url));
     }
     if (path.startsWith("/api/admin/auth/login") || path === "/api/health") {
@@ -46,11 +46,11 @@ export function middleware(req: NextRequest) {
 
     // Rewrite clean URL → /admin/<path>
     let target: string | null = null;
-    if (path === "/") target = "/admin";
-    else if (ADMIN_PAGES.includes(path)) target = `/admin${path}`;
+    if (path === "/" || path === "/admin" || path === "/admin/") target = "/admin";
+    else if (path.startsWith("/admin/")) target = path; // direct /admin/* access
     else if (path === "/print/qr") target = "/admin/qr/print";
+    else if (ADMIN_PAGES.includes(path)) target = `/admin${path}`;
     else if (path.startsWith("/api/admin/")) target = path;
-    else if (path.startsWith("/admin/")) target = path; // internal direct access (menus link there)
     else return notFound();
 
     // Shallow auth gate (deep verification happens in each page/API)

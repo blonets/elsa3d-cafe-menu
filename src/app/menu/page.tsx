@@ -369,6 +369,17 @@ export default async function MenuPage() {
         <span className="txt-en">No matching items… try another word</span>
       </div>
 
+      {/* Floating Back to Top button */}
+      <button
+        id="back-to-top"
+        type="button"
+        className="back-to-top no-print"
+        aria-label="الرجوع للأعلى"
+        title="الرجوع للأعلى"
+      >
+        <span className="text-[18px] font-black leading-none">↑</span>
+      </button>
+
       <MenuInteractive oosMode={s.oosDisplayMode} announcementHash={annLive ? annHash : ""} />
     </div>
   );

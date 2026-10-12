@@ -35,8 +35,15 @@ export default function AdminChrome({ children, menuUrl }: { children: React.Rea
   const [loggingOut, setLoggingOut] = useState(false);
 
   const isActive = (href: string) => {
-    if (href === "/admin") return pathname === "/admin" || pathname === "/";
-    return pathname.startsWith(href);
+    if (href === "/admin") {
+      return pathname === "/admin" || pathname === "/" || pathname === "";
+    }
+    const clean = href.replace("/admin", "");
+    return (
+      pathname === href ||
+      pathname.startsWith(href + "/") ||
+      (clean !== "" && (pathname === clean || pathname.startsWith(clean + "/")))
+    );
   };
 
   const logout = async () => {
@@ -50,16 +57,16 @@ export default function AdminChrome({ children, menuUrl }: { children: React.Rea
     <div className="admin-bg flex flex-col md:flex-row" dir="rtl">
       {/* Sidebar */}
       <aside className="md:w-60 shrink-0 border-b md:border-b-0 md:border-s md:border-[var(--line)] bg-[var(--card)] md:min-h-dvh md:sticky md:top-0 md:h-dvh flex flex-col">
-        <div className="flex items-center gap-2.5 px-4 py-4">
+        <Link href="/admin" className="flex items-center gap-2.5 px-4 py-4 hover:opacity-90 transition-opacity">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo-mark.png" alt="" className="w-9 h-9 rounded-full" />
+          <img src="/brand/logo-mark.png" alt="" className="w-9 h-9 rounded-full shadow-sm" />
           <div className="leading-tight">
             <p className="font-extrabold text-[14px]">لوحة التحكم</p>
             <p className="text-[11px]" style={{ color: "var(--ink-faint)" }}>
               كافيه السعد
             </p>
           </div>
-        </div>
+        </Link>
         <nav className="flex md:flex-col gap-1 px-2.5 pb-2 overflow-x-auto md:overflow-y-auto flex-1">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} className={`admin-nav-link ${isActive(n.href) ? "active" : ""}`}>
