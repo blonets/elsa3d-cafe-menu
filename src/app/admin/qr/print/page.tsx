@@ -3,7 +3,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { qrPng } from "@/lib/qr";
 import { MENU_URL } from "@/lib/env";
-import { Printer, ArrowRight, Scissors, Info } from "lucide-react";
+import { ArrowRight, Scissors, Info } from "lucide-react";
+import PrintButton from "@/components/admin/PrintButton";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ export default async function QrPrintPage({ searchParams }: PageProps) {
     tables.map(async (tableNum) => {
       const tableUrl = `${MENU_URL}/?t=${tableNum}`;
       const pngBuf = await qrPng(tableUrl, {
-        size: is15cm ? 1024 : 768,
+        size: is15cm ? 768 : 512,
         withLogo: true,
         dark: s.primaryColor || "#1c1917",
       });
@@ -215,14 +216,7 @@ export default async function QrPrintPage({ searchParams }: PageProps) {
             </div>
 
             {/* Print Trigger Button */}
-            <button
-              onClick={() => {}}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[13px] shadow-sm transition-all active:scale-95 cursor-pointer"
-              id="print-action-btn"
-            >
-              <Printer size={15} />
-              <span>طباعة الآن / حفظ PDF</span>
-            </button>
+            <PrintButton />
           </div>
         </div>
 
@@ -234,22 +228,6 @@ export default async function QrPrintPage({ searchParams }: PageProps) {
           </span>
         </div>
       </header>
-
-      {/* Script for the print button */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('DOMContentLoaded', function() {
-              var btn = document.getElementById('print-action-btn');
-              if (btn) {
-                btn.addEventListener('click', function() {
-                  window.print();
-                });
-              }
-            });
-          `,
-        }}
-      />
 
       {/* ── Printable Sheets Container ── */}
       <main className="py-6 print:py-0">
