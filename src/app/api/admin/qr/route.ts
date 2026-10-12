@@ -35,12 +35,13 @@ export async function POST(req: NextRequest) {
   const size = [512, 1024, 2048].includes(body.size ?? 1024) ? body.size! : 1024;
 
   if (body.kind === "batch") {
-    const count = Math.min(Math.max(Number(body.count) || 10, 1), 100);
-    const zip = await tableQrZip(MENU_URL, count);
+    const start = Math.max(Number((body as any).start) || 1, 1);
+    const end = Math.min(Math.max(Number((body as any).end || body.count) || 10, start), 200);
+    const zip = await tableQrZip(MENU_URL, end, start);
     return new NextResponse(new Uint8Array(zip), {
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="table-qr-${count}.zip"`,
+        "Content-Disposition": `attachment; filename="table-qr-${start}-to-${end}.zip"`,
       },
     });
   }

@@ -118,10 +118,59 @@ html[data-lang="ar"] .txt-ar { display: revert !important; }
   letter-spacing: -0.01em;
 }
 
-.announcement-bar {
-  background: var(--brand-primary);
+.announcement-card-wrap {
+  width: 100%;
+  animation: annFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes annFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.announcement-card {
+  background: linear-gradient(135deg, #2c2016 0%, #1a120c 60%, #140d08 100%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 0 20px -3px rgba(184, 134, 11, 0.15);
   color: #f7f3ea;
+  position: relative;
   overflow: hidden;
+}
+
+.announcement-card .announcement-badge {
+  background: rgba(212, 175, 55, 0.16);
+  color: #f6d285;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.announcement-card .announcement-cta {
+  background: linear-gradient(135deg, #dfb74a 0%, #b8860b 100%);
+  color: #17110c;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(184, 134, 11, 0.35);
+}
+
+.announcement-card .announcement-cta:hover {
+  background: linear-gradient(135deg, #ebd175 0%, #c9930f 100%);
+  transform: translateY(-1px);
+}
+
+.announcement-card .announcement-close {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(247, 243, 234, 0.7);
+  transition: all 0.15s ease;
+}
+
+.announcement-card .announcement-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .cat-tabs {

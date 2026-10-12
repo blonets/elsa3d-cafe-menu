@@ -22,7 +22,16 @@ export default async function MenuPage() {
   const s = data.settings;
   const empty = !hasAnyContent(data);
   const annLive = isAnnouncementLive(s);
-  const annHash = hashStr(s.announcement ?? "");
+  const annHash = hashStr(
+    (s.announcement ?? "") +
+    (s.announcementBadge ?? "") +
+    (s.announcementCtaText ?? "") +
+    (s.announcementCtaLink ?? "")
+  );
+  const ctaLink = s.announcementCtaLink?.trim()
+    ? s.announcementCtaLink.trim()
+    : `https://wa.me/${s.whatsapp}?text=${encodeURIComponent("مرحباً كافيه السعد، أستفسر بخصوص: " + (s.announcement ?? ""))}`;
+  const isExternalCta = ctaLink.startsWith("http://") || ctaLink.startsWith("https://") || ctaLink.startsWith("tel:");
 
   const tabs: TabInfo[] = data.categories.map((c) => ({
     slug: c.slug,
@@ -63,19 +72,6 @@ export default async function MenuPage() {
         }}
       />
 
-      {annLive && (
-        <div id="announcement" className="announcement-bar no-print" data-ann-hash={annHash}>
-          <div className="mx-auto max-w-[680px] flex items-center justify-between gap-3 px-4 py-2.5">
-            <p className="text-[13px] font-bold leading-snug">
-              <span className="txt-ar">{s.announcement}</span>
-              <span className="txt-en" dir="ltr">{s.announcement}</span>
-            </p>
-            <button id="ann-dismiss" aria-label="إغلاق" className="opacity-60 hover:opacity-100 text-lg leading-none px-1">
-              ×
-            </button>
-          </div>
-        </div>
-      )}
 
       <header className="menu-header no-print">
         <div className="mx-auto max-w-[680px] px-4 pt-3 pb-2">
@@ -135,6 +131,58 @@ export default async function MenuPage() {
           </div>
         </div>
       </header>
+
+      {annLive && (
+        <aside
+          id="announcement"
+          className="announcement-card-wrap no-print"
+          data-ann-hash={annHash}
+          aria-label="إعلان ترويجي"
+        >
+          <div className="mx-auto max-w-[680px] px-4 pt-2.5 pb-1">
+            <div className="announcement-card rounded-2xl p-4 sm:p-5">
+              {/* Subtle ambient amber glows */}
+              <div className="pointer-events-none absolute -top-10 -end-10 w-28 h-28 rounded-full bg-amber-500/15 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-10 -start-10 w-28 h-28 rounded-full bg-amber-600/10 blur-2xl" />
+
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11.5px] font-extrabold announcement-badge">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span>{s.announcementBadge || "عرض خاص"}</span>
+                  </div>
+
+                  <p className="text-[13.5px] sm:text-[14.5px] font-bold leading-relaxed text-[#fdfaf5]">
+                    <span className="txt-ar">{s.announcement}</span>
+                    <span className="txt-en" dir="ltr">{s.announcement}</span>
+                  </p>
+
+                  <div className="pt-0.5">
+                    <a
+                      href={ctaLink}
+                      target={isExternalCta ? "_blank" : undefined}
+                      rel={isExternalCta ? "noopener noreferrer" : undefined}
+                      className="announcement-cta inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold transition-all active:scale-95"
+                    >
+                      <span>{s.announcementCtaText || "تواصل عبر واتساب"}</span>
+                      <span aria-hidden="true">←</span>
+                    </a>
+                  </div>
+                </div>
+
+                <button
+                  id="ann-dismiss"
+                  aria-label="إغلاق الإعلان"
+                  title="إغلاق"
+                  className="announcement-close shrink-0 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer text-sm font-bold leading-none active:scale-90"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      )}
 
       <nav className="cat-tabs no-print" aria-label="أقسام المنيو">
         <div id="cat-tabs-inner" className="mx-auto max-w-[680px] flex gap-2 overflow-x-auto px-4 py-2.5">

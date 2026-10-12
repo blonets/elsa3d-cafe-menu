@@ -74,10 +74,12 @@ export async function qrSvg(text: string, opts: QrOptions = {}): Promise<string>
   return renderQrSvg(text, opts);
 }
 
-/** Batch table QRs (t=1..count) as a ZIP of 1024px PNGs. */
-export async function tableQrZip(baseUrl: string, count: number): Promise<Buffer> {
+/** Batch table QRs (t=start..countOrEnd) as a ZIP of 1024px PNGs. */
+export async function tableQrZip(baseUrl: string, countOrEnd: number, start = 1): Promise<Buffer> {
   const zip = new JSZip();
-  for (let t = 1; t <= count; t++) {
+  const from = Math.max(1, start);
+  const to = Math.max(from, countOrEnd);
+  for (let t = from; t <= to; t++) {
     const buf = await renderQrPng(`${baseUrl}/?t=${t}`, { size: 1024 });
     zip.file(`table-${String(t).padStart(3, "0")}.png`, buf);
   }

@@ -15,7 +15,13 @@ export default function DashboardWidgets({
   deadItems,
 }: {
   oosItems: OosItem[];
-  announcement: { text: string; active: boolean };
+  announcement: {
+    text: string;
+    active: boolean;
+    badge?: string | null;
+    ctaText?: string | null;
+    ctaLink?: string | null;
+  };
   topViewed: { id: number; nameAr: string; views: number }[];
   deadItems: { id: number; nameAr: string }[];
 }) {
@@ -23,6 +29,9 @@ export default function DashboardWidgets({
   const [pending, startTransition] = useTransition();
   const [annText, setAnnText] = useState(announcement.text);
   const [annActive, setAnnActive] = useState(announcement.active);
+  const [annBadge, setAnnBadge] = useState(announcement.badge ?? "عرض خاص");
+  const [annCtaText, setAnnCtaText] = useState(announcement.ctaText ?? "تواصل عبر واتساب");
+  const [annCtaLink, setAnnCtaLink] = useState(announcement.ctaLink ?? "");
   const [savedMsg, setSavedMsg] = useState("");
 
   const backInStock = async (id: number) => {
@@ -31,8 +40,14 @@ export default function DashboardWidgets({
   };
 
   const saveAnnouncement = async () => {
-    await updateAnnouncement({ announcement: annText, active: annActive });
-    setSavedMsg("تم الحفظ ✓ — هيظهر في المنيو خلال ثواني");
+    await updateAnnouncement({
+      announcement: annText,
+      active: annActive,
+      badge: annBadge,
+      ctaText: annCtaText,
+      ctaLink: annCtaLink,
+    });
+    setSavedMsg("تم الحفظ ✓ — هيظهر في المنيو فوريًا");
     setTimeout(() => setSavedMsg(""), 3500);
     startTransition(() => router.refresh());
   };
@@ -68,25 +83,68 @@ export default function DashboardWidgets({
       </section>
 
       {/* Announcement quick edit */}
-      <section className="card p-5">
-        <div className="flex items-center gap-2 mb-3">
+      <section className="card p-5 space-y-3">
+        <div className="flex items-center gap-2 mb-1">
           <Megaphone size={16} className="text-amber-500" />
-          <h2 className="font-extrabold text-[15px]">شريط الإعلان</h2>
+          <h2 className="font-extrabold text-[15px]">شريط وكارت الإعلان (المنيو)</h2>
         </div>
-        <textarea
-          className="inp"
-          rows={3}
-          placeholder="مثال: عرض اليوم — آيس لاتيه بـ 25 ج.م بدل 35"
-          value={annText}
-          onChange={(e) => setAnnText(e.target.value)}
-        />
-        <div className="flex items-center justify-between mt-3">
+
+        <div>
+          <label className="text-[12px] font-bold block mb-1">نص الإعلان أو العرض</label>
+          <textarea
+            className="inp"
+            rows={2}
+            placeholder="مثال: عرض اليوم — آيس لاتيه بـ 25 ج.م بدل 35"
+            value={annText}
+            onChange={(e) => setAnnText(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-[12px] font-bold block mb-1">الشارة الترويجية (Badge)</label>
+            <input
+              type="text"
+              className="inp text-[13px]"
+              placeholder="مثال: عرض خاص / ماتش اليوم"
+              value={annBadge}
+              onChange={(e) => setAnnBadge(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-bold block mb-1">نص زر التفاعل (CTA)</label>
+            <input
+              type="text"
+              className="inp text-[13px]"
+              placeholder="مثال: تواصل عبر واتساب"
+              value={annCtaText}
+              onChange={(e) => setAnnCtaText(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[12px] font-bold block mb-1">رابط الزر المخصص (اختياري)</label>
+          <input
+            type="text"
+            dir="ltr"
+            className="inp text-[13px]"
+            placeholder="فارغ = يفتح واتساب الكافيه تلقائياً"
+            value={annCtaLink}
+            onChange={(e) => setAnnCtaLink(e.target.value)}
+          />
+          <p className="text-[11px] mt-1" style={{ color: "var(--ink-faint)" }}>
+            إذا تركته فارغاً، الزر سيفتح واتساب الكافيه (201025617078) مباشرة مع رسالة الإعلان.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
           <label className="flex items-center gap-2 text-[13px] font-bold cursor-pointer select-none">
             <input type="checkbox" checked={annActive} onChange={(e) => setAnnActive(e.target.checked)} className="w-4 h-4 accent-amber-600" />
-            مفعّل
+            تفعيل الإعلان في المنيو
           </label>
           <button onClick={saveAnnouncement} disabled={pending} className="btn btn-primary btn-sm">
-            حفظ الإعلان
+            {pending ? "بيحفظ…" : "حفظ الإعلان"}
           </button>
         </div>
         {savedMsg && <p className="text-[12.5px] font-bold mt-2 text-green-600">{savedMsg}</p>}

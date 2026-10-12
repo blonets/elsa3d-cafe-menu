@@ -11,3 +11,4 @@ build/
 /backups/
 .zcode/
 .zcodeignore
+*.tsbuildinfo

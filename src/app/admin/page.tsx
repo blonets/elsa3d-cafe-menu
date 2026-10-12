@@ -76,7 +76,13 @@ export default async function AdminDashboard() {
 
       <DashboardWidgets
         oosItems={oosItems}
-        announcement={{ text: s.announcement ?? "", active: s.announcementActive }}
+        announcement={{
+          text: s.announcement ?? "",
+          active: s.announcementActive,
+          badge: s.announcementBadge ?? "",
+          ctaText: s.announcementCtaText ?? "",
+          ctaLink: s.announcementCtaLink ?? "",
+        }}
         topViewed={topViewed.map((t) => ({ id: t.id, nameAr: t.name_ar, views: t.views }))}
         deadItems={deadItems.map((d) => ({ id: d.id, nameAr: d.name_ar }))}
       />

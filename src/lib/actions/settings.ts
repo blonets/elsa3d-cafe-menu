@@ -31,12 +31,18 @@ export async function updateAnnouncement(data: {
   announcement: string;
   active: boolean;
   expiresAt?: string | null;
+  badge?: string | null;
+  ctaText?: string | null;
+  ctaLink?: string | null;
 }): Promise<{ ok: boolean }> {
   await requireAdmin();
   await updateSettings({
     announcement: data.announcement.trim() || null,
     announcementActive: data.active && Boolean(data.announcement.trim()),
     announcementExpiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+    announcementBadge: data.badge?.trim() || null,
+    announcementCtaText: data.ctaText?.trim() || null,
+    announcementCtaLink: data.ctaLink?.trim() || null,
   });
   refresh();
   return { ok: true };

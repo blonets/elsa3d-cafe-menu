@@ -28,6 +28,9 @@ export const settings = pgTable("settings", {
   announcement: text("announcement"),
   announcementActive: boolean("announcement_active").notNull().default(false),
   announcementExpiresAt: timestamp("announcement_expires_at", { withTimezone: true }),
+  announcementBadge: text("announcement_badge"),
+  announcementCtaText: text("announcement_cta_text"),
+  announcementCtaLink: text("announcement_cta_link"),
   oosDisplayMode: text("oos_display_mode").notNull().default("hide"), // hide | gray
   peakMode: boolean("peak_mode").notNull().default(false),
   footerNoteAr: text("footer_note_ar"),
