@@ -15,15 +15,14 @@ function refresh() {
 }
 
 function slugify(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 60) || `item-${Date.now().toString(36)}`
-  );
+  const cleaned = s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 60);
+  return cleaned && !/^[-_]+$/.test(cleaned) ? cleaned : `item-${Date.now().toString(36)}`;
 }
 
 async function snapshotDeletedItems(ids: number[]) {
@@ -56,6 +55,18 @@ export async function createItem(categoryId: number, nameAr: string): Promise<{ 
     .insert(items)
     .values({ categoryId, code, nameAr: name, nameEn: name, sort: count.length + 1 })
     .returning({ id: items.id });
+
+  // Guarantee that every created item has a default variant and price
+  await db.insert(variants).values({
+    itemId: row.id,
+    nameAr: null,
+    nameEn: null,
+    price: "0",
+    sort: 1,
+    isActive: true,
+    isAvailable: true,
+  });
+
   refresh();
   return { ok: true, id: row.id };
 }
